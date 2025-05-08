@@ -31,6 +31,9 @@ filtered_df = df[
     df["Year"].isin(selected_years)
 ]
 
+# Brand colors
+brand_colors = ['#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F', '#EDC948']
+
 # === Summary Metrics ===
 st.title("📊 JDC Project Profitability Dashboard")
 st.markdown("Track revenue, gross/net profit, and job trends across categories.")
@@ -52,54 +55,117 @@ pie_data = filtered_df.groupby("Job Type")["Revenue"].sum().reset_index()
 fig_pie = px.pie(pie_data, names="Job Type", values="Revenue", title="Revenue Breakdown")
 st.plotly_chart(fig_pie, use_container_width=True)
 
-# === Comparison Table: 2023 vs 2024 ===
-st.markdown("---")
-st.markdown("## 📊 2023 vs 2024 Job Type Summary")
-
-compare_cols = ["Revenue", "Net Profit", "Gross Profit"]
-summary = df.groupby(["Year", "Job Type"])[compare_cols].sum().reset_index()
-pivot = summary.pivot(index="Job Type", columns="Year", values=compare_cols)
-pivot.columns = [f"{metric} {year}" for metric, year in pivot.columns]
-pivot = pivot.reset_index()
-
-# % Change columns
-pivot["Revenue % Change"] = ((pivot["Revenue 2024"] - pivot["Revenue 2023"]) / pivot["Revenue 2023"]) * 100
-pivot["Net Profit % Change"] = ((pivot["Net Profit 2024"] - pivot["Net Profit 2023"]) / pivot["Net Profit 2023"]) * 100
-pivot["Gross Profit % Change"] = ((pivot["Gross Profit 2024"] - pivot["Gross Profit 2023"]) / pivot["Gross Profit 2023"]) * 100
-
-# Format display
-def format_money(val): return f"${val:,.0f}" if pd.notnull(val) else "—"
-def format_percent(val): return f"🔼 {val:.1f}%" if val > 0 else f"🔻 {abs(val):.1f}%" if pd.notnull(val) else "—"
-
-display_df = pivot.copy()
-for col in ["Revenue 2023", "Revenue 2024", "Net Profit 2023", "Net Profit 2024", "Gross Profit 2023", "Gross Profit 2024"]:
-    display_df[col] = display_df[col].apply(format_money)
-for col in ["Revenue % Change", "Net Profit % Change", "Gross Profit % Change"]:
-    display_df[col] = pivot[col].apply(format_percent)
-
-st.dataframe(display_df)
-
-# Download button
-csv = display_df.to_csv(index=False).encode("utf-8")
-st.download_button("📥 Download Comparison Table", csv, "2023_vs_2024_comparison.csv", "text/csv")
-
-# === Company-Wide Totals Bar Chart ===
-st.markdown("## 📈 Overall Company Totals: 2023 vs 2024")
-totals = df.groupby("Year")[["Revenue", "Net Profit", "Gross Profit"]].sum().reset_index()
-fig_total = go.Figure(data=[
-    go.Bar(name='Revenue', x=totals["Year"], y=totals["Revenue"], marker_color='royalblue'),
-    go.Bar(name='Gross Profit', x=totals["Year"], y=totals["Gross Profit"], marker_color='mediumseagreen'),
-    go.Bar(name='Net Profit', x=totals["Year"], y=totals["Net Profit"], marker_color='orange')
-])
-fig_total.update_layout(
-    title="📊 Company-Wide Metrics: 2023 vs 2024",
-    xaxis_title="Year", yaxis_title="USD ($)", barmode="group",
-    legend_title="Metric", template="plotly_white"
+# --- Chart 1: Gross vs Net Profit by Job
+st.markdown("### 💰 Gross vs Net Profit by Job")
+sorted_df = filtered_df.sort_values(by="Net Profit", ascending=False)
+bar_data = sorted_df[["JOB NAME", "Gross Profit", "Net Profit"]].melt(
+    id_vars="JOB NAME", var_name="Type", value_name="Profit"
 )
-st.plotly_chart(fig_total, use_container_width=True)
+fig_bar = px.bar(
+    bar_data,
+    x="JOB NAME",
+    y="Profit",
+    color="Type",
+    color_discrete_sequence=brand_colors,
+    barmode="group"
+)
+st.plotly_chart(fig_bar, use_container_width=True)
 
-# === Raw Data View ===
-with st.expander("📋 View Raw Data Table"):
-    st.dataframe(filtered_df)
-    csv_all = filtered_df.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download Filtered Data", csv_all, "filtered_data.csv", "text/csv")
+# --- Chart 2: Revenue Share by Job Type
+st.markdown("### 🧁 Revenue Share by Job Type")
+pie_data = df.groupby("Job Type")["Revenue"].sum().reset_index()
+fig_pie = px.pie(
+    pie_data,
+    names="Job Type",
+    values="Revenue",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_pie, use_container_width=True)
+
+# --- Chart 3: Avg Net Profit % by Job Type
+st.markdown("### 📈 Avg Net Profit % by Job Type")
+avg_profit_df = df.groupby("Job Type")["Net Profit %"].mean().reset_index()
+avg_profit_df["Net Profit %"] = avg_profit_df["Net Profit %"] * 100
+fig_avg = px.bar(
+    avg_profit_df,
+    x="Job Type",
+    y="Net Profit %",
+    color="Job Type",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_avg, use_container_width=True)
+
+# --- Chart 4: Job Count by Job Type
+st.markdown("### 📊 Number of Jobs by Type")
+job_count = df["Job Type"].value_counts().reset_index()
+job_count.columns = ["Job Type", "Count"]
+fig_count = px.bar(
+    job_count,
+    x="Job Type",
+    y="Count",
+    color="Job Type",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_count, use_container_width=True)
+
+# --- Chart 5: Gross Profit Share by Job Type
+st.markdown("### 🧁 Gross Profit Share by Job Type")
+gross_share = df.groupby("Job Type")["Gross Profit"].sum().reset_index()
+fig_gross_pie = px.pie(
+    gross_share,
+    names="Job Type",
+    values="Gross Profit",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_gross_pie, use_container_width=True)
+
+# --- Chart 6B: Net Profit Share by Job Type
+st.markdown("### 🧁 Net Profit Share by Job Type")
+net_share = df.groupby("Job Type")["Net Profit"].sum().reset_index()
+fig_net_pie = px.pie(
+    net_share,
+    names="Job Type",
+    values="Net Profit",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_net_pie, use_container_width=True)
+
+# --- Chart 6: Top 10 Most Profitable Jobs
+st.markdown("### 🏆 Top 10 Most Profitable Jobs")
+top_jobs = df.sort_values(by="Net Profit", ascending=False).head(10)
+fig_top = px.bar(
+    top_jobs,
+    x="JOB NAME",
+    y="Net Profit",
+    color="Job Type",
+    color_discrete_sequence=brand_colors,
+    title="Top 10 Jobs by Net Profit"
+)
+st.plotly_chart(fig_top, use_container_width=True)
+
+# --- Chart 7: Revenue vs COGS by Job
+st.markdown("### 📉 Revenue vs COGS by Job")
+revenue_cogs = filtered_df.sort_values(by="Revenue", ascending=False)
+fig_rev_cogs = px.bar(
+    revenue_cogs,
+    x="JOB NAME",
+    y=["Revenue", "COGS"],
+    barmode="group",
+    color_discrete_sequence=brand_colors,
+    title="Revenue vs Cost of Goods Sold"
+)
+st.plotly_chart(fig_rev_cogs, use_container_width=True)
+
+# --- Chart 8: Revenue per Job Count by Job Type
+st.markdown("### ⚖️ Revenue per Job (Efficiency) by Type")
+rev_per_job = df.groupby("Job Type").agg({"Revenue": "sum", "JOB NAME": "count"}).reset_index()
+rev_per_job["Revenue per Job"] = rev_per_job["Revenue"] / rev_per_job["JOB NAME"]
+fig_efficiency = px.bar(
+    rev_per_job,
+    x="Job Type",
+    y="Revenue per Job",
+    color="Job Type",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_efficiency, use_container_width=True)
+
