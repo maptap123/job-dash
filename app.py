@@ -43,18 +43,6 @@ col1.metric("Total Revenue", f"${filtered_df['Revenue'].sum():,.0f}")
 col2.metric("Total Net Profit", f"${filtered_df['Net Profit'].sum():,.0f}")
 col3.metric("Avg Net Profit %", f"{filtered_df['Net Profit %'].mean()*100:.1f}%")
 
-# === Gross vs Net Profit by Job ===
-st.markdown("### 💰 Gross vs Net Profit by Job")
-bar_data = filtered_df[["JOB NAME", "Gross Profit", "Net Profit"]].melt(id_vars="JOB NAME", var_name="Type", value_name="Profit")
-fig_bar = px.bar(bar_data, x="JOB NAME", y="Profit", color="Type", barmode="group", title="Gross vs Net Profit")
-st.plotly_chart(fig_bar, use_container_width=True)
-
-# === Revenue Share Pie Chart ===
-st.markdown("### 🧁 Revenue Share by Job Type")
-pie_data = filtered_df.groupby("Job Type")["Revenue"].sum().reset_index()
-fig_pie = px.pie(pie_data, names="Job Type", values="Revenue", title="Revenue Breakdown")
-st.plotly_chart(fig_pie, use_container_width=True)
-
 # --- Chart 1: Gross vs Net Profit by Job
 st.markdown("### 💰 Gross vs Net Profit by Job")
 sorted_df = filtered_df.sort_values(by="Net Profit", ascending=False)
@@ -82,9 +70,9 @@ fig_pie = px.pie(
 )
 st.plotly_chart(fig_pie, use_container_width=True)
 
-# --- Chart 3: Avg Net Profit % by Job Type
+# --- Chart 3: Avg Net Profit % by Job Type (filtered)
 st.markdown("### 📈 Avg Net Profit % by Job Type")
-avg_profit_df = df.groupby("Job Type")["Net Profit %"].mean().reset_index()
+avg_profit_df = filtered_df.groupby("Job Type")["Net Profit %"].mean().reset_index()
 avg_profit_df["Net Profit %"] = avg_profit_df["Net Profit %"] * 100
 fig_avg = px.bar(
     avg_profit_df,
@@ -95,9 +83,9 @@ fig_avg = px.bar(
 )
 st.plotly_chart(fig_avg, use_container_width=True)
 
-# --- Chart 4: Job Count by Job Type
+# --- Chart 4: Job Count by Job Type (filtered)
 st.markdown("### 📊 Number of Jobs by Type")
-job_count = df["Job Type"].value_counts().reset_index()
+job_count = filtered_df["Job Type"].value_counts().reset_index()
 job_count.columns = ["Job Type", "Count"]
 fig_count = px.bar(
     job_count,
@@ -108,9 +96,9 @@ fig_count = px.bar(
 )
 st.plotly_chart(fig_count, use_container_width=True)
 
-# --- Chart 5: Gross Profit Share by Job Type
+# --- Chart 5: Gross Profit Share by Job Type (filtered)
 st.markdown("### 🧁 Gross Profit Share by Job Type")
-gross_share = df.groupby("Job Type")["Gross Profit"].sum().reset_index()
+gross_share = filtered_df.groupby("Job Type")["Gross Profit"].sum().reset_index()
 fig_gross_pie = px.pie(
     gross_share,
     names="Job Type",
@@ -119,9 +107,9 @@ fig_gross_pie = px.pie(
 )
 st.plotly_chart(fig_gross_pie, use_container_width=True)
 
-# --- Chart 6B: Net Profit Share by Job Type
+# --- Chart 6B: Net Profit Share by Job Type (filtered)
 st.markdown("### 🧁 Net Profit Share by Job Type")
-net_share = df.groupby("Job Type")["Net Profit"].sum().reset_index()
+net_share = filtered_df.groupby("Job Type")["Net Profit"].sum().reset_index()
 fig_net_pie = px.pie(
     net_share,
     names="Job Type",
@@ -130,9 +118,9 @@ fig_net_pie = px.pie(
 )
 st.plotly_chart(fig_net_pie, use_container_width=True)
 
-# --- Chart 6: Top 10 Most Profitable Jobs
+# --- Chart 6: Top 10 Most Profitable Jobs (filtered)
 st.markdown("### 🏆 Top 10 Most Profitable Jobs")
-top_jobs = df.sort_values(by="Net Profit", ascending=False).head(10)
+top_jobs = filtered_df.sort_values(by="Net Profit", ascending=False).head(10)
 fig_top = px.bar(
     top_jobs,
     x="JOB NAME",
@@ -143,7 +131,7 @@ fig_top = px.bar(
 )
 st.plotly_chart(fig_top, use_container_width=True)
 
-# --- Chart 7: Revenue vs COGS by Job
+# --- Chart 7: Revenue vs COGS by Job (filtered)
 st.markdown("### 📉 Revenue vs COGS by Job")
 revenue_cogs = filtered_df.sort_values(by="Revenue", ascending=False)
 fig_rev_cogs = px.bar(
@@ -156,9 +144,9 @@ fig_rev_cogs = px.bar(
 )
 st.plotly_chart(fig_rev_cogs, use_container_width=True)
 
-# --- Chart 8: Revenue per Job Count by Job Type
+# --- Chart 8: Revenue per Job Count by Job Type (filtered)
 st.markdown("### ⚖️ Revenue per Job (Efficiency) by Type")
-rev_per_job = df.groupby("Job Type").agg({"Revenue": "sum", "JOB NAME": "count"}).reset_index()
+rev_per_job = filtered_df.groupby("Job Type").agg({"Revenue": "sum", "JOB NAME": "count"}).reset_index()
 rev_per_job["Revenue per Job"] = rev_per_job["Revenue"] / rev_per_job["JOB NAME"]
 fig_efficiency = px.bar(
     rev_per_job,
