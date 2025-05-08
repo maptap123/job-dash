@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from PIL import Image
+
+logo = Image.open("logo.png")
+st.image(logo, width=200)
+
+
 # Load data
 df = pd.read_csv("job_profitability_cleaned.csv")
 
