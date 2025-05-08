@@ -1,3 +1,5 @@
+# Generate updated app.py content with new charts added
+updated_app_code = """
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -37,7 +39,8 @@ col3.metric("Avg Net Profit %", f"{filtered_df['Net Profit %'].mean()*100:.1f}%"
 # Brand colors
 brand_colors = ['#1A2930', '#D4A953']
 
-# Bar chart (sorted by Net Profit)
+# --- Chart 1: Gross vs Net Profit by Job
+st.markdown("### 💰 Gross vs Net Profit by Job")
 sorted_df = filtered_df.sort_values(by="Net Profit", ascending=False)
 bar_data = sorted_df[["JOB NAME", "Gross Profit", "Net Profit"]].melt(
     id_vars="JOB NAME", var_name="Type", value_name="Profit"
@@ -48,26 +51,80 @@ fig_bar = px.bar(
     y="Profit",
     color="Type",
     color_discrete_sequence=brand_colors,
-    barmode="group",
-    title="💰 Gross vs Net Profit by Job"
+    barmode="group"
 )
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Pie chart
-st.markdown("### 🧁 Revenue Distribution by Job Type")
+# --- Chart 2: Revenue Share by Job Type
+st.markdown("### 🧁 Revenue Share by Job Type")
 pie_data = df.groupby("Job Type")["Revenue"].sum().reset_index()
 fig_pie = px.pie(
     pie_data,
     names="Job Type",
     values="Revenue",
-    title="Revenue Share by Job Type",
     color_discrete_sequence=brand_colors
 )
 st.plotly_chart(fig_pie, use_container_width=True)
 
-# Raw data & download
+# --- Chart 3: Avg Net Profit % by Job Type
+st.markdown("### 📈 Avg Net Profit % by Job Type")
+avg_profit_df = df.groupby("Job Type")["Net Profit %"].mean().reset_index()
+avg_profit_df["Net Profit %"] = avg_profit_df["Net Profit %"] * 100
+fig_avg = px.bar(
+    avg_profit_df,
+    x="Job Type",
+    y="Net Profit %",
+    color="Job Type",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_avg, use_container_width=True)
+
+# --- Chart 4: Job Count by Job Type
+st.markdown("### 📊 Number of Jobs by Type")
+job_count = df["Job Type"].value_counts().reset_index()
+job_count.columns = ["Job Type", "Count"]
+fig_count = px.bar(
+    job_count,
+    x="Job Type",
+    y="Count",
+    color="Job Type",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_count, use_container_width=True)
+
+# --- Chart 5: Gross Profit Share by Job Type
+st.markdown("### 🧁 Gross Profit Share by Job Type")
+gross_share = df.groupby("Job Type")["Gross Profit"].sum().reset_index()
+fig_gross_pie = px.pie(
+    gross_share,
+    names="Job Type",
+    values="Gross Profit",
+    color_discrete_sequence=brand_colors
+)
+st.plotly_chart(fig_gross_pie, use_container_width=True)
+
+# --- Chart 6: Net Profit % Distribution
+st.markdown("### 📉 Net Profit % Distribution")
+fig_hist = px.histogram(
+    df,
+    x="Net Profit %",
+    nbins=20,
+    title="Distribution of Net Profit %",
+    color_discrete_sequence=["#1A2930"]
+)
+st.plotly_chart(fig_hist, use_container_width=True)
+
+# Expandable raw data + download
 with st.expander("📄 View Raw Data Table"):
     st.dataframe(filtered_df)
 
     csv = filtered_df.to_csv(index=False).encode("utf-8")
     st.download_button("📥 Download Filtered Data", csv, "filtered_data.csv", "text/csv")
+"""
+
+# Save this to file so user can upload to GitHub
+file_path = "/mnt/data/app.py"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(updated_app_code)
+
+file_path
