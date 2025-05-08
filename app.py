@@ -1,5 +1,4 @@
-# Generate updated app.py content with new charts added
-updated_app_code = """
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -120,11 +119,3 @@ with st.expander("📄 View Raw Data Table"):
 
     csv = filtered_df.to_csv(index=False).encode("utf-8")
     st.download_button("📥 Download Filtered Data", csv, "filtered_data.csv", "text/csv")
-"""
-
-# Save this to file so user can upload to GitHub
-file_path = "/mnt/data/app.py"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(updated_app_code)
-
-file_path
