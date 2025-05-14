@@ -38,10 +38,21 @@ brand_colors = ['#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F', '#EDC948'
 st.title("📊 JDC Project Profitability Dashboard")
 st.markdown("Track revenue, gross/net profit, and job trends across categories.")
 
+# Calculate totals
+total_revenue = filtered_df['Revenue'].sum()
+total_net_profit = filtered_df['Net Profit'].sum()
+
+# Avoid division by zero
+if total_revenue > 0:
+    net_profit_pct = total_net_profit / total_revenue
+else:
+    net_profit_pct = 0
+
+# Display metrics
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Revenue", f"${filtered_df['Revenue'].sum():,.0f}")
-col2.metric("Total Net Profit", f"${filtered_df['Net Profit'].sum():,.0f}")
-col3.metric("Avg Net Profit %", f"{filtered_df['Net Profit %'].mean()*100:.1f}%")
+col1.metric("Total Revenue", f"${total_revenue:,.0f}")
+col2.metric("Total Net Profit", f"${total_net_profit:,.0f}")
+col3.metric("Net Profit %", f"{net_profit_pct*100:.1f}%")
 
 # --- Chart 1: Gross vs Net Profit by Job
 st.markdown("### 💰 Gross vs Net Profit by Job")
